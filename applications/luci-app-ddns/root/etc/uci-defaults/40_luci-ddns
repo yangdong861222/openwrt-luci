@@ -6,5 +6,6 @@ uci -q batch <<-EOF >/dev/null
 	commit ucitrack
 EOF
 
+lua /usr/lib/lua/luci/tools/ddns_compatible.lua >/dev/null 2>&1
 rm -f /tmp/luci-indexcache
 return 0
