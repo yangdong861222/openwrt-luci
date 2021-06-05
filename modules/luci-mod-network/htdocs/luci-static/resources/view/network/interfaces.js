@@ -294,7 +294,7 @@ return view.extend({
 			network.getDSLModemType(),
 			network.getDevices(),
 			fs.lines('/etc/iproute2/rt_tables'),
-			fs.read('/usr/lib/opkg/info/netifd.control'),
+			L.resolveDefault(fs.read('/usr/lib/opkg/info/netifd.control')),
 			uci.changes()
 		]);
 	},
@@ -326,12 +326,14 @@ return view.extend({
 			tasks.push(uci.callAdd('network', 'device', null, {
 				'name': device_name,
 				'type': 'bridge',
-				'ports': L.toArray(ns.ifname)
+				'ports': L.toArray(ns.ifname),
+				'macaddr': ns.macaddr
 			}));
 
 			tasks.push(uci.callSet('network', ns['.name'], {
 				'type': '',
 				'ifname': '',
+				'macaddr': '',
 				'device': device_name
 			}));
 		});
@@ -519,7 +521,8 @@ return view.extend({
 						.then(L.bind(this.renderMoreOptionsModal, this, s.section));
 				}, this);
 
-				o = s.taboption('general', widgets.DeviceSelect, 'device', _('Device'));
+				o = s.taboption('general', widgets.DeviceSelect, '_net_device', _('Device'));
+				o.ucioption = 'device';
 				o.nobridges = false;
 				o.optional = false;
 				o.network = ifc.getName();
@@ -768,10 +771,6 @@ return view.extend({
 					so.depends('dhcpv6', 'relay');
 					so.depends('dhcpv6', 'hybrid');
 
-					so = ss.taboption('ipv6', form.Flag , 'master', _('Master'), _('Set this interface as master for the dhcpv6 relay.'));
-					so.depends('dhcpv6', 'relay');
-					so.depends('dhcpv6', 'hybrid');
-
 					so = ss.taboption('ipv6', form.Flag, 'ra_default', _('Announce as default router'), _('Always, even if no public prefix is available.'));
 					so.depends('ra', 'server');
 					so.depends('ra', 'hybrid');
@@ -890,7 +889,7 @@ return view.extend({
 					case 'igmp_snooping':
 					case 'stp':
 					case 'type':
-					case 'device':
+					case '_net_device':
 						var deps = [];
 						for (var j = 0; j < protocols.length; j++) {
 							if (!protocols[j].isVirtual()) {
@@ -1141,6 +1140,7 @@ return view.extend({
 			    deleteBtn = trEl.querySelector('button:last-child');
 
 			deleteBtn.firstChild.data = _('Reset');
+			deleteBtn.setAttribute('title', _('Remove related device settings from the configuration'));
 			deleteBtn.disabled = section_id.match(/^dev:/) ? true : null;
 
 			return trEl;
