@@ -262,5 +262,52 @@ if network:has_ipv6() then
 	m.pageaction = true
 end
 
+if network.netifd_version > "2021-05-20" then
+	s = m:section(TypedSection, "device", translate("Devices"))
+	s.addremove = true
+	s.anonymous = true
+	s.template = "cbi/tblsection"
+	local extedit = luci.dispatcher.build_url("admin/network/device/%s")
+	function s.create(e, t)
+		local sid = TypedSection.create(e, t)
+		luci.http.redirect(extedit:format(sid))
+	end
+	s.extedit = extedit .. "/edit"
+
+	o = s:option(DummyValue, "name", translate("Device"))
+
+	o = s:option(DummyValue, "type", translate("Type"))
+	o.cfgvalue = function(t, n)
+		local v = Value.cfgvalue(t, n)
+		if v == "" then
+			return translate("Device not present")
+		elseif v == "8021q" then
+			return translate("VLAN (802.1q)")
+		elseif v == "8021ad" then
+			return translate("VLAN (802.1ad)")
+		elseif v == "bridge" then
+			return translate("Bridge device")
+		elseif v == "tunnel" then
+			return translate("Tunnel device")
+		elseif v == "macvlan" then
+			return translate("MAC VLAN")
+		elseif v == "veth" then
+			return translate("Virtual Ethernet")
+		else
+			return translate("Network device")
+		end
+	end
+
+	o = s:option(DummyValue, "macaddr", translate("MAC Address"))
+	o.cfgvalue = function(t, n)
+		return Value.cfgvalue(t, n) or "-"
+	end
+	
+	o = s:option(DummyValue, "mtu", translate("MTU"))
+	o.cfgvalue = function(t, n)
+		return Value.cfgvalue(t, n) or "-"
+	end
+end
+
 
 return m
