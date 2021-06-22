@@ -22,7 +22,7 @@ s.addremove = false
 s:tab("general",  translate("General Settings"))
 s:tab("logging",  translate("Logging"))
 s:tab("language", translate("Language and Style"))
---s:tab("box", translate("Saves application box time Settings"))
+s:tab("box", translate("Saves application box time Settings"))
 
 if has_zram then s:tab("zram", translate("ZRam Settings")) end
 
@@ -170,7 +170,6 @@ function o.write(self, section, value)
 	m.uci:set("luci", "main", "mediaurlbase", value)
 end
 
---[[
 o = s:taboption("box", Value, "rollback", translate("rollback time"))
 o.datatype="uinteger"
 
@@ -214,7 +213,26 @@ end
 function o.write(self, section, value)
 	m.uci:set("luci", "apply", "display", value)
 end
-]]--
+
+o = s:taboption("box", Flag, "popup_box", translate("Enable pop-up box"))
+o.rmempty = false
+function o.cfgvalue(...)
+	return m.uci:get("luci", "apply", "popup_box")
+end
+
+function o.write(self, section, value)
+	m.uci:set("luci", "apply", "popup_box", value)
+end
+
+o = s:taboption("box", Flag, "auto_refresh_page", translate("Enable auto refresh page"))
+o.rmempty = false
+function o.cfgvalue(...)
+	return m.uci:get("luci", "apply", "auto_refresh_page")
+end
+
+function o.write(self, section, value)
+	m.uci:set("luci", "apply", "auto_refresh_page", value)
+end
 
 --
 -- NTP
